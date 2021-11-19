@@ -1,48 +1,63 @@
 import streamlit as st
 
+import requests
+import pandas as pd
+import numpy as np
+
 '''
 # TaxiFareModel front
 '''
 
-st.markdown('''
-Remember that there are several ways to output content into your web page...
+#Website header
+col1, col2, col3, col4 = st.columns(4)
 
-Either as with the title by just creating a string (or an f-string). Or as with this paragraph using the `st.` functions
-''')
+with col1:
+    st.write('Day and time:')
+    day_inp = st.date_input('Ride day:')
+    time_inp = st.time_input('Ride time:')
+    pickup_datetime_inp = f'{day_inp} {time_inp}'
+    #st.write(pickup_datetime_inp)
 
-'''
-## Here we would like to add some controllers in order to ask the user to select the parameters of the ride
+with col2:
+    st.write('Pickup location:')
+    pickup_longitude_inp = st.number_input('Pickup longitude:', step=0.0001)
+    pickup_latitude_inp = st.number_input('Pickup latitude:')
 
-1. Let's ask for:
-- date and time
-- pickup longitude
-- pickup latitude
-- dropoff longitude
-- dropoff latitude
-- passenger count
-'''
+with col3:
+    st.write('Dropoff location:')
+    dropoff_longitude_inp = st.number_input('Dropoff longitude:')
+    dropoff_latitude_inp = st.number_input('Dropoff latitude:')
 
-'''
-## Once we have these, let's call our API in order to retrieve a prediction
+with col4:
+    st.write('Number of passengers:')
+    passenger_count_inp = st.number_input('Passenge count:', step=1)
 
-See ? No need to load a `model.joblib` file in this app, we do not even need to know anything about Data Science in order to retrieve a prediction...
 
-🤔 How could we call our API ? Off course... The `requests` package 💡
-'''
-
+#Calling the API
 url = 'https://taxifare.lewagon.ai/predict'
 
-if url == 'https://taxifare.lewagon.ai/predict':
+#pickup_datetime='2012-10-06 10:20:00'
+#pickup_longitude=40.7614327
+#pickup_latitude=-73.9798156
+#dropoff_longitude=40.6513111
+#dropoff_latitude=-73.8803331
+#passenger_count=2
 
-    st.markdown('Maybe you want to use your own API for the prediction, not the one provided by Le Wagon...')
+params = {
+    #'day': day_inp,
+    #'time': time_inp,
+    'pickup_datetime': pickup_datetime_inp,
+    'passenger_count': passenger_count_inp,
+    'pickup_longitude': float(pickup_longitude_inp),
+    'pickup_latitude': float(pickup_latitude_inp),
+    'dropoff_longitude': float(dropoff_longitude_inp),
+    'dropoff_latitude': float(dropoff_latitude_inp)
+    }
 
-'''
+if st.button('Check fare'):
+    response = requests.get(url, params=params)
+    st.write(response.json()['prediction'])
 
-2. Let's build a dictionary containing the parameters for our API...
-
-3. Let's call our API using the `requests` package...
-
-4. Let's retrieve the prediction from the **JSON** returned by the API...
-
-## Finally, we can display the prediction to the user
-'''
+#NY map
+df = pd.DataFrame(np.expand_dims(np.array([40.7128, -74.0060]), axis = 1).T, columns=['lat', 'lon'])
+st.map(df)
